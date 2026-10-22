@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics 2204 - Online Assignment 01</title>
+  
+  <!-- KaTeX for math formatting -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f4f8; color: #2d3748; padding: 15px; margin: 0; line-height: 1.5; }
+    .container { max-width: 760px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    h1 { font-size: 22px; color: #1a365d; margin-top: 0; margin-bottom: 5px; }
+    .subtitle { color: #718096; font-size: 14px; margin-bottom: 20px; }
+
+    /* Name Card */
+    .student-bar { background: #edf2f7; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .student-bar label { font-weight: bold; font-size: 14px; }
+    .student-bar input { padding: 8px 12px; font-size: 14px; border: 1px solid #cbd5e0; border-radius: 4px; width: 260px; }
+
+    /* Progress & Tracker */
+    .progress-container { margin-bottom: 15px; }
+    .progress-text { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #4a5568; margin-bottom: 6px; }
+    .progress-bar-bg { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; width: 6.25%; background: #3182ce; transition: width 0.3s ease; }
+
+    /* Question Navigator Pills */
+    .nav-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+    .nav-pill { width: 34px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #cbd5e0; border-radius: 5px; font-size: 13px; font-weight: 600; cursor: pointer; background: white; color: #4a5568; }
+    .nav-pill.active { background: #3182ce; color: white; border-color: #3182ce; }
+    .nav-pill.answered { background: #ebf8ff; border-color: #bee3f8; color: #2b6cb0; }
+    .nav-pill.active.answered { background: #3182ce; color: white; }
+
+    /* Question Box */
+    .question-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 22px; background: #fff; min-height: 220px; display: none; }
+    .question-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #1a202c; line-height: 1.6; }
+    .option-label { display: block; margin: 10px 0; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
+    .option-label:hover { background: #f7fafc; border-color: #cbd5e0; }
+    .option-label.selected { background: #ebf8ff; border-color: #63b3ed; }
+    .option-label input { margin-right: 12px; }
+
+    /* Button Controls */
+    .button-row { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; }
+    .btn { padding: 10px 22px; font-size: 15px; font-weight: 600; border-radius: 6px; cursor: pointer; border: none; transition: background 0.15s; }
+    .btn-prev { background: #e2e8f0; color: #4a5568; }
+    .btn-prev:hover { background: #cbd5e0; }
+    .btn-next { background: #3182ce; color: white; }
+    .btn-next:hover { background: #2b6cb0; }
+    .btn-submit { background: #38a169; color: white; }
+    .btn-submit:hover { background: #2f855a; }
+
+    /* Completion Box */
+    #submission-box { display: none; padding: 25px; background: #ebf8ff; border: 2px solid #3182ce; border-radius: 8px; text-align: center; }
+    .code-display { font-family: monospace; word-break: break-all; background: white; padding: 12px; border: 1px solid #cbd5e0; border-radius: 4px; margin: 15px 0; font-size: 13px; }
+    .btn-action { display: inline-block; padding: 11px 22px; font-weight: bold; text-decoration: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+    .btn-copy { background: #319795; color: white; border: none; }
+    .btn-form { background: #3182ce; color: white; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Physics 2204 — Online Assignment 01</h1>
+  <div class="subtitle">Kinematics & Significant Digits Review</div>
+
+  <div class="student-bar">
+    <label for="studentName">Student Full Name:</label>
+    <input type="text" id="studentName" placeholder="First and Last Name" required>
+  </div>
+
+  <div class="progress-container">
+    <div class="progress-text">
+      <span id="progressLabel">Question 1 of 16</span>
+      <span id="answeredLabel">0/16 Answered</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- Jump Pills -->
+  <div class="nav-grid" id="navGrid"></div>
+
+  <!-- Form Questions -->
+  <form id="quizForm"></form>
+
+  <div class="button-row" id="navButtons">
+    <button type="button" class="btn btn-prev" id="btnPrev" onclick="changeQuestion(-1)" style="visibility: hidden;">← Previous</button>
+    <button type="button" class="btn btn-next" id="btnNext" onclick="changeQuestion(1)">Next →</button>
+  </div>
+
+  <div id="submission-box">
+    <h2 style="color: #2b6cb0; margin-top: 0;">🎉 Quiz Finished!</h2>
+    <p>Follow these 2 simple steps to submit your results:</p>
+    <p><strong>Step 1:</strong> Copy your unique verification code:</p>
+    <div class="code-display" id="finalCode"></div>
+    <button class="btn-action btn-copy" onclick="copyCode()">📋 Copy Code to Clipboard</button>
+    <p style="margin-top: 15px;"><strong>Step 2:</strong> Open the submission form, pick your teacher, and paste your code:</p>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLScv32H1sdI1iJKC1oDEDIcDixXCG1oHFSUruuyXzxGnEgCNxQ/viewform" target="_blank" class="btn-action btn-form">Open Google Submission Form ↗</a>
+  </div>
+</div>
+
+<script>
+// 4 Variants per Question. Zero answer keys included here.
+const quizData = [
+  {
+    id: 1, pts: 1,
+    variants: [
+      { q: "Which measured quantity has four significant digits?", opts: ["0.054 m", "150.0 m", "1000 m", "0.10901 m"] },
+      { q: "Which measured quantity has three significant digits?", opts: ["0.007 m", "400.0 m", "2.05 m", "0.03400 m"] },
+      { q: "Which measured quantity has four significant digits?", opts: ["0.0230 m", "500 m", "3.000 m", "0.0004 m"] },
+      { q: "Which measured quantity has three significant digits?", opts: ["65.0 m", "0.006 m", "1200 m", "7.000 m"] }
+    ]
+  },
+  {
+    id: 2, pts: 1,
+    variants: [
+      { q: "Using the rules of significant digits, what is the correct recorded answer for: $$\\frac{1.23\\text{ m} + 2.45\\text{ m}}{1.7\\text{ s}}$$", opts: ["2.1 m/s", "2.2 m/s", "2.20 m/s", "2.16 m/s"] },
+      { q: "Using the rules of significant digits, what is the correct recorded answer for: $$\\frac{3.12\\text{ m} + 1.64\\text{ m}}{2.1\\text{ s}}$$", opts: ["2.26 m/s", "2.2 m/s", "2.3 m/s", "2.30 m/s"] },
+      { q: "Using the rules of significant digits, what is the correct recorded answer for: $$\\frac{4.55\\text{ m} + 1.25\\text{ m}}{3.2\\text{ s}}$$", opts: ["1.8 m/s", "1.81 m/s", "1.9 m/s", "1.813 m/s"] },
+      { q: "Using the rules of significant digits, what is the correct recorded answer for: $$\\frac{2.15\\text{ m} + 5.25\\text{ m}}{2.5\\text{ s}}$$", opts: ["2.9 m/s", "2.96 m/s", "3.0 m/s", "3 m/s"] }
+    ]
+  },
+  {
+    id: 3, pts: 1,
+    variants: [
+      { q: "Convert to scientific notation keeping the same number of significant digits: $0.054\\text{ m}$", opts: ["$5 \\times 10^{-2}\\text{ m}$", "$54 \\times 10^{-2}\\text{ m}$", "$5.4 \\times 10^{2}\\text{ m}$", "$5.4 \\times 10^{-2}\\text{ m}$"] },
+      { q: "Convert to scientific notation keeping the same number of significant digits: $0.0068\\text{ m}$", opts: ["$6.8 \\times 10^{-3}\\text{ m}$", "$68 \\times 10^{-4}\\text{ m}$", "$6.8 \\times 10^{3}\\text{ m}$", "$7 \\times 10^{-3}\\text{ m}$"] },
+      { q: "Convert to scientific notation keeping the same number of significant digits: $0.00042\\text{ m}$", opts: ["$42 \\times 10^{-5}\\text{ m}$", "$4.2 \\times 10^{-4}\\text{ m}$", "$4.2 \\times 10^{4}\\text{ m}$", "$4 \\times 10^{-4}\\text{ m}$"] },
+      { q: "Convert to scientific notation keeping the same number of significant digits: $0.0890\\text{ m}$", opts: ["$8.9 \\times 10^{-2}\\text{ m}$", "$89 \\times 10^{-3}\\text{ m}$", "$8.90 \\times 10^{-2}\\text{ m}$", "$8.90 \\times 10^{2}\\text{ m}$"] }
+    ]
+  },
+  {
+    id: 4, pts: 1,
+    variants: [
+      { q: "Convert 300 metres to kilometres?", opts: ["3 km", "$3 \\times 10^5\\text{ km}$", "0.003 km", "0.3 km"] },
+      { q: "Convert 450 metres to kilometres?", opts: ["4.5 km", "0.45 km", "0.045 km", "$4.5 \\times 10^5\\text{ km}$"] },
+      { q: "Convert 75 metres to kilometres?", opts: ["0.075 km", "0.75 km", "7.5 km", "$7.5 \\times 10^{-4}\\text{ km}$"] },
+      { q: "Convert 1200 metres to kilometres?", opts: ["12 km", "0.12 km", "1.2 km", "$1.2 \\times 10^4\\text{ km}$"] }
+    ]
+  },
+  {
+    id: 5, pts: 1,
+    variants: [
+      { q: "Convert $95.0\\text{ km/h}$ to $\\text{m/s}$:", opts: ["26.4 m/s", "3420 m/s", "342 m/s", "2.64 m/s"] },
+      { q: "Convert $110.0\\text{ km/h}$ to $\\text{m/s}$:", opts: ["3.06 m/s", "396 m/s", "30.6 m/s", "3960 m/s"] },
+      { q: "Convert $60.0\\text{ km/h}$ to $\\text{m/s}$:", opts: ["216 m/s", "16.7 m/s", "1.67 m/s", "6.00 m/s"] },
+      { q: "Convert $75.0\\text{ km/h}$ to $\\text{m/s}$:", opts: ["2.08 m/s", "270 m/s", "7.50 m/s", "20.8 m/s"] }
+    ]
+  },
+  {
+    id: 6, pts: 1,
+    variants: [
+      { q: "Which of the following statements represents a scalar quantity?", opts: ["A truck travels at 68 km/h [NW]", "A cyclist stops riding 54 km [W] of their house", "A softball is thrown at 3.4 m/s [E]", "An object stays in the air for 560 seconds"] },
+      { q: "Which of the following statements represents a scalar quantity?", opts: ["A runner completes a marathon in 3.5 hours", "A wind blows at 25 km/h [N]", "A plane descends with a velocity of 15 m/s [down]", "A displaced box moved 4.0 m [left]"] },
+      { q: "Which of the following statements represents a vector quantity?", opts: ["A package has a mass of 4.5 kg", "A car drives 120 km [South]", "A movie lasts for 135 minutes", "The temperature outside is 18 °C"] },
+      { q: "Which of the following statements represents a scalar quantity?", opts: ["An elevator moves at 2.0 m/s [down]", "An apple falls with acceleration 9.8 m/s² [down]", "A fuel tank holds 55 L of gasoline", "A boat sails 15 km [East]"] }
+    ]
+  },
+  {
+    id: 7, pts: 1,
+    variants: [
+      { q: "What would be the displacement of a student who walks 3 blocks east, 2 blocks west, and then 5 blocks east?", opts: ["6 blocks [W]", "4 blocks [E]", "0", "6 blocks [E]"] },
+      { q: "What would be the displacement of a student who walks 4 blocks north, 3 blocks south, and then 6 blocks north?", opts: ["7 blocks [S]", "5 blocks [N]", "7 blocks [N]", "13 blocks [N]"] },
+      { q: "What would be the displacement of a student who walks 5 blocks west, 3 blocks east, and then 4 blocks west?", opts: ["6 blocks [W]", "6 blocks [E]", "2 blocks [W]", "12 blocks [W]"] },
+      { q: "What would be the displacement of a student who walks 6 blocks south, 4 blocks north, and then 5 blocks south?", opts: ["5 blocks [S]", "7 blocks [S]", "7 blocks [N]", "15 blocks [S]"] }
+    ]
+  },
+  {
+    id: 8, pts: 1,
+    variants: [
+      { q: "A car is traveling at $22\\text{ m/s [W]}$ relative to the ground when the car's driver sees a truck on the straight road ahead with a velocity of $5.0\\text{ m/s [W]}$ relative to the car. What is the car's velocity relative to the truck?", opts: ["5.0 m/s [W]", "27 m/s [W]", "17 m/s [W]", "5.0 m/s [E]"] },
+      { q: "A car is traveling at $18\\text{ m/s [E]}$ relative to the ground when the car's driver sees a van ahead with a velocity of $4.0\\text{ m/s [E]}$ relative to the car. What is the car's velocity relative to the van?", opts: ["4.0 m/s [W]", "4.0 m/s [E]", "22 m/s [E]", "14 m/s [E]"] },
+      { q: "A car is traveling at $25\\text{ m/s [N]}$ relative to the ground when the driver sees a truck ahead with a velocity of $6.0\\text{ m/s [N]}$ relative to the car. What is the car's velocity relative to the truck?", opts: ["6.0 m/s [N]", "6.0 m/s [S]", "31 m/s [N]", "19 m/s [N]"] },
+      { q: "A car is traveling at $20\\text{ m/s [S]}$ relative to the ground when the driver sees a bus ahead with a velocity of $7.0\\text{ m/s [S]}$ relative to the car. What is the car's velocity relative to the bus?", opts: ["27 m/s [S]", "13 m/s [S]", "7.0 m/s [N]", "7.0 m/s [S]"] }
+    ]
+  },
+  {
+    id: 9, pts: 1,
+    variants: [
+      { q: "A student is traveling down a river in a boat at a velocity of $25\\text{ km/h [W]}$ relative to the river. The river is moving at $13\\text{ km/h [W]}$ relative to the shore. What is the velocity of the boat relative to the shore?", opts: ["12 km/h [W]", "38 km/h [W]", "12 km/h [E]", "38 km/h [E]"] },
+      { q: "A student is traveling down a river in a boat at a velocity of $20\\text{ km/h [E]}$ relative to the river. The river is moving at $8.0\\text{ km/h [E]}$ relative to the shore. What is the velocity of the boat relative to the shore?", opts: ["28 km/h [E]", "12 km/h [E]", "28 km/h [W]", "12 km/h [W]"] },
+      { q: "A student is traveling up a river in a boat at a velocity of $18\\text{ km/h [N]}$ relative to the river. The river current is flowing at $6.0\\text{ km/h [S]}$ relative to the shore. What is the velocity of the boat relative to the shore?", opts: ["24 km/h [N]", "12 km/h [S]", "12 km/h [N]", "24 km/h [S]"] },
+      { q: "A student is traveling up a river in a boat at a velocity of $22\\text{ km/h [S]}$ relative to the river. The river current is flowing at $5.0\\text{ km/h [N]}$ relative to the shore. What is the velocity of the boat relative to the shore?", opts: ["27 km/h [S]", "17 km/h [N]", "27 km/h [N]", "17 km/h [S]"] }
+    ]
+  },
+  {
+    id: 10, pts: 1,
+    variants: [
+      { q: "A group of bike riders took a $5.0\\text{ h}$ trip. During the first $3.0\\text{ h}$ they rode $50.0\\text{ km [E]}$, but during the last $2.0\\text{ h}$ they rode only $10.0\\text{ km [W]}$. What was the group's average speed for the entire trip?", opts: ["20 km/h", "13 km/h", "12 km/h", "8.0 km/h"] },
+      { q: "A group of bike riders took a $4.0\\text{ h}$ trip. During the first $2.5\\text{ h}$ they rode $60.0\\text{ km [N]}$, but during the last $1.5\\text{ h}$ they rode only $20.0\\text{ km [S]}$. What was the group's average speed for the entire trip?", opts: ["10 km/h", "20 km/h", "15 km/h", "25 km/h"] },
+      { q: "A group of bike riders took a $6.0\\text{ h}$ trip. During the first $4.0\\text{ h}$ they rode $80.0\\text{ km [E]}$, but during the last $2.0\\text{ h}$ they rode only $16.0\\text{ km [W]}$. What was the group's average speed for the entire trip?", opts: ["16 km/h", "11 km/h", "24 km/h", "8.0 km/h"] },
+      { q: "A group of bike riders took a $5.0\\text{ h}$ trip. During the first $3.5\\text{ h}$ they rode $70.0\\text{ km [S]}$, but during the last $1.5\\text{ h}$ they rode only $30.0\\text{ km [N]}$. What was the group's average speed for the entire trip?", opts: ["8.0 km/h", "14 km/h", "25 km/h", "20 km/h"] }
+    ]
+  },
+  {
+    id: 11, pts: 1,
+    variants: [
+      { q: "A group of hikers took a $10.0\\text{ h}$ trip. During the first $6.0\\text{ h}$ they walked $24.0\\text{ km [S]}$, but during the last $4.0\\text{ h}$ they walked only $16.0\\text{ km [N]}$. What was the group's average velocity for the entire trip?", opts: ["0.80 km/h [S]", "4.0 km/h [S]", "4.0 km/h [N]", "0.80 km/h [N]"] },
+      { q: "A group of hikers took a $10.0\\text{ h}$ trip. During the first $7.0\\text{ h}$ they walked $35.0\\text{ km [E]}$, but during the last $3.0\\text{ h}$ they walked only $15.0\\text{ km [W]}$. What was the group's average velocity for the entire trip?", opts: ["5.0 km/h [E]", "2.0 km/h [W]", "2.0 km/h [E]", "5.0 km/h [W]"] },
+      { q: "A group of hikers took an $8.0\\text{ h}$ trip. During the first $5.0\\text{ h}$ they walked $30.0\\text{ km [N]}$, but during the last $3.0\\text{ h}$ they walked only $14.0\\text{ km [S]}$. What was the group's average velocity for the entire trip?", opts: ["2.0 km/h [N]", "5.5 km/h [N]", "2.0 km/h [S]", "5.5 km/h [S]"] },
+      { q: "A group of hikers took a $6.0\\text{ h}$ trip. During the first $4.0\\text{ h}$ they walked $28.0\\text{ km [W]}$, but during the last $2.0\\text{ h}$ they walked only $10.0\\text{ km [E]}$. What was the group's average velocity for the entire trip?", opts: ["6.3 km/h [W]", "3.0 km/h [W]", "3.0 km/h [E]", "6.3 km/h [E]"] }
+    ]
+  },
+  {
+    id: 12, pts: 1,
+    variants: [
+      { q: "Which object would be slowing down?", opts: ["An object moving North and accelerating North.", "An object moving North and accelerating South.", "An object moving South and accelerating South.", "None of the above would be slowing down."] },
+      { q: "Which object would be slowing down?", opts: ["An object moving East and accelerating East.", "An object moving West and accelerating West.", "An object moving East and accelerating West.", "An object moving at constant speed."] },
+      { q: "Which object would be slowing down?", opts: ["An object moving South and accelerating North.", "An object moving South and accelerating South.", "An object moving North and accelerating North.", "None of the above would be slowing down."] },
+      { q: "Which object would be slowing down?", opts: ["An object moving Up and accelerating Up.", "An object moving Down and accelerating Down.", "An object moving West and accelerating West.", "An object moving West and accelerating East."] }
+    ]
+  },
+  {
+    id: 13, pts: 1,
+    variants: [
+      { q: "A cyclist increases her speed from $1.80\\text{ m/s}$ to $4.60\\text{ m/s}$ over a distance of $120.0\\text{ m}$. How long would this speed change take, assuming uniform acceleration?", opts: ["18.8 s", "792 s", "37.5 s", "396 s"] },
+      { q: "A cyclist increases her speed from $2.00\\text{ m/s}$ to $6.00\\text{ m/s}$ over a distance of $100.0\\text{ m}$. How long would this speed change take, assuming uniform acceleration?", opts: ["25.0 s", "50.0 s", "12.5 s", "200 s"] },
+      { q: "A cyclist increases her speed from $3.00\\text{ m/s}$ to $7.00\\text{ m/s}$ over a distance of $150.0\\text{ m}$. How long would this speed change take, assuming uniform acceleration?", opts: ["60.0 s", "30.0 s", "15.0 s", "375 s"] },
+      { q: "A cyclist increases her speed from $1.50\\text{ m/s}$ to $4.50\\text{ m/s}$ over a distance of $90.0\\text{ m}$. How long would this speed change take, assuming uniform acceleration?", opts: ["15.0 s", "270 s", "60.0 s", "30.0 s"] }
+    ]
+  },
+  {
+    id: 14, pts: 1,
+    variants: [
+      { q: "A car accelerates at $-4\\text{ m/s}^2$. What is the change in velocity of the car between the 1st and 2nd seconds?", opts: ["0 m/s", "4 m/s", "-8 m/s", "-4 m/s"] },
+      { q: "A car accelerates at $-5\\text{ m/s}^2$. What is the change in velocity of the car between the 2nd and 3rd seconds?", opts: ["-10 m/s", "5 m/s", "-5 m/s", "0 m/s"] },
+      { q: "A car accelerates at $+3\\text{ m/s}^2$. What is the change in velocity of the car between the 3rd and 4th seconds?", opts: ["3 m/s", "-3 m/s", "12 m/s", "0 m/s"] },
+      { q: "A car accelerates at $-6\\text{ m/s}^2$. What is the change in velocity of the car between the 1st and 2nd seconds?", opts: ["6 m/s", "-6 m/s", "-12 m/s", "0 m/s"] }
+    ]
+  },
+  {
+    id: 15, pts: 1,
+    variants: [
+      { q: "An object is thrown vertically upward from the Earth. Before it has reached its maximum height, what is true of its velocity and acceleration?", opts: ["Its velocity is upward and its acceleration is upward.", "Its velocity is downward but its acceleration is upward.", "Its velocity is upward but its acceleration is downward.", "Its velocity is downward and its acceleration is downward."] },
+      { q: "A rock is thrown vertically upward from the Earth. While it is on its way downward after reaching maximum height, what is true of its velocity and acceleration?", opts: ["Its velocity is upward but its acceleration is downward.", "Its velocity is downward and its acceleration is downward.", "Its velocity is downward but its acceleration is upward.", "Its velocity is upward and its acceleration is upward."] },
+      { q: "An object is thrown vertically upward from the Earth. At the exact instant it reaches its maximum height, what is true of its velocity and acceleration?", opts: ["Its velocity is zero and its acceleration is downward.", "Its velocity is zero and its acceleration is zero.", "Its velocity is upward and its acceleration is zero.", "Its velocity is downward and its acceleration is downward."] },
+      { q: "A rock is thrown vertically upward from the Earth. Immediately after release as it heads upward, what is true of its velocity and acceleration?", opts: ["Its velocity is downward and its acceleration is downward.", "Its velocity is upward and its acceleration is upward.", "Its velocity is downward but its acceleration is upward.", "Its velocity is upward but its acceleration is downward."] }
+    ]
+  },
+  {
+    id: 16, pts: 2,
+    variants: [
+      { q: "A ball is tossed up to a maximum height of $38\\text{ m}$. Ignoring air resistance, what was its initial speed?", opts: ["27 m/s", "38 m/s", "0 m/s", "9.8 m/s"] },
+      { q: "A ball is tossed up to a maximum height of $45\\text{ m}$. Ignoring air resistance, what was its initial speed?", opts: ["45 m/s", "30 m/s", "9.8 m/s", "21 m/s"] },
+      { q: "A ball is tossed up to a maximum height of $20.0\\text{ m}$. Ignoring air resistance, what was its initial speed?", opts: ["14 m/s", "20 m/s", "9.8 m/s", "39 m/s"] },
+      { q: "A ball is tossed up to a maximum height of $55\\text{ m}$. Ignoring air resistance, what was its initial speed?", opts: ["55 m/s", "23 m/s", "33 m/s", "9.8 m/s"] }
+    ]
+  }
+];
+
+let currentIndex = 0;
+const selectedVariants = [];
+const studentChoices = new Array(quizData.length).fill(null);
+
+function initQuiz() {
+  const form = document.getElementById("quizForm");
+  const navGrid = document.getElementById("navGrid");
+  form.innerHTML = "";
+  navGrid.innerHTML = "";
+
+  quizData.forEach((item, idx) => {
+    // Pick variant 0, 1, 2, or 3 randomly
+    const vIdx = Math.floor(Math.random() * item.variants.length);
+    selectedVariants[idx] = vIdx;
+    const vData = item.variants[vIdx];
+
+    // Build Question Card
+    const card = document.createElement("div");
+    card.className = "question-card";
+    card.id = `qCard_${idx}`;
+    card.innerHTML = `
+      <div class="question-title">Question ${idx + 1} of ${quizData.length} &nbsp;·&nbsp; [${item.pts} mark${item.pts > 1 ? 's' : ''}]<br><br>${vData.q}</div>
+      ${vData.opts.map((opt, oIdx) => `
+        <label class="option-label" id="optLabel_${idx}_${oIdx}">
+          <input type="radio" name="q_${idx}" value="${oIdx}" onchange="selectOption(${idx}, ${oIdx})">
+          <strong>${String.fromCharCode(65 + oIdx)})</strong> ${opt}
+        </label>
+      `).join("")}
+    `;
+    form.appendChild(card);
+
+    // Build Nav Pill
+    const pill = document.createElement("div");
+    pill.className = "nav-pill";
+    pill.id = `pill_${idx}`;
+    pill.innerText = idx + 1;
+    pill.onclick = () => jumpToQuestion(idx);
+    navGrid.appendChild(pill);
+  });
+
+  // Render KaTeX across the full question set
+  renderMath();
+  showQuestion(0);
+}
+
+function renderMath() {
+  if (typeof renderMathInElement === "function") {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+        { left: "\\(", right: "\\)", display: false },
+        { left: "\\[", right: "\\]", display: true }
+      ],
+      throwOnError: false
+    });
+  }
+}
+
+function showQuestion(index) {
+  document.querySelectorAll(".question-card").forEach((c, i) => {
+    c.style.display = (i === index) ? "block" : "none";
+  });
+  document.querySelectorAll(".nav-pill").forEach((p, i) => {
+    p.classList.toggle("active", i === index);
+  });
+
+  currentIndex = index;
+
+  // Update progress
+  document.getElementById("progressLabel").innerText = `Question ${index + 1} of ${quizData.length}`;
+  document.getElementById("progressFill").style.width = `${((index + 1) / quizData.length) * 100}%`;
+
+  // Update buttons
+  document.getElementById("btnPrev").style.visibility = (index === 0) ? "hidden" : "visible";
+  const btnNext = document.getElementById("btnNext");
+  if (index === quizData.length - 1) {
+    btnNext.innerText = "Submit Assignment ✓";
+    btnNext.className = "btn btn-submit";
+  } else {
+    btnNext.innerText = "Next →";
+    btnNext.className = "btn btn-next";
+  }
+}
+
+function changeQuestion(delta) {
+  const target = currentIndex + delta;
+  if (target >= quizData.length) {
+    generateSubmission();
+  } else if (target >= 0) {
+    showQuestion(target);
+  }
+}
+
+function jumpToQuestion(index) {
+  showQuestion(index);
+}
+
+function selectOption(qIdx, optIdx) {
+  studentChoices[qIdx] = optIdx;
+  document.getElementById(`pill_${qIdx}`).classList.add("answered");
+
+  // Highlight selected styling
+  for (let o = 0; o < 4; o++) {
+    const el = document.getElementById(`optLabel_${qIdx}_${o}`);
+    if (el) el.classList.toggle("selected", o === optIdx);
+  }
+
+  // Update answered count
+  const answeredCount = studentChoices.filter(x => x !== null).length;
+  document.getElementById("answeredLabel").innerText = `${answeredCount}/${quizData.length} Answered`;
+}
+
+function generateSubmission() {
+  const name = document.getElementById("studentName").value.trim();
+  if (!name) {
+    alert("Please enter your full name in the box at the top before submitting.");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  const unanswered = [];
+  studentChoices.forEach((ans, idx) => {
+    if (ans === null) unanswered.push(idx + 1);
+  });
+
+  if (unanswered.length > 0) {
+    const confirmSubmit = confirm(`You have not answered Question(s): ${unanswered.join(", ")}.\n\nClick Cancel to go back and finish, or OK to submit anyway.`);
+    if (!confirmSubmit) {
+      jumpToQuestion(unanswered[0] - 1);
+      return;
+    }
+  }
+
+  const answers = [];
+  for (let i = 0; i < quizData.length; i++) {
+    answers.push([selectedVariants[i], studentChoices[i] !== null ? studentChoices[i] : -1]);
+  }
+
+  const payload = {
+    n: name,
+    t: Date.now(),
+    a: answers
+  };
+
+  const encoded = "P2204:" + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  document.getElementById("finalCode").innerText = encoded;
+
+  // Lock UI & show completion box
+  document.getElementById("quizForm").style.display = "none";
+  document.getElementById("navButtons").style.display = "none";
+  document.getElementById("navGrid").style.display = "none";
+  document.querySelector(".progress-container").style.display = "none";
+  document.getElementById("submission-box").style.display = "block";
+  window.scrollTo({ top: document.getElementById("submission-box").offsetTop - 40, behavior: 'smooth' });
+}
+
+function copyCode() {
+  const code = document.getElementById("finalCode").innerText;
+  navigator.clipboard.writeText(code).then(() => {
+    alert("Submission code copied to clipboard!");
+  });
+}
+
+window.addEventListener("load", () => {
+  initQuiz();
+});
+</script>
+</body>
+</html>
